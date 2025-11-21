@@ -44,35 +44,33 @@ db <- db |>
     SMA_05  = TTR::SMA(ITUB4.SA.Close, n = 5),
     SMA_10  = TTR::SMA(ITUB4.SA.Close, n = 10),
     SMA_20  = TTR::SMA(ITUB4.SA.Close, n = 20),
-    SMA_50  = TTR::SMA(ITUB4.SA.Close, n = 50),
-    SMA_100 = TTR::SMA(ITUB4.SA.Close, n = 100),
-    SMA_200 = TTR::SMA(ITUB4.SA.Close, n = 200),
+    SMA_60  = TTR::SMA(ITUB4.SA.Close, n = 60),
     
     # --- Exponential Moving Averages (EMA) ---
-    EMA_12 = TTR::EMA(ITUB4.SA.Close, n = 12),
+    EMA_05 = TTR::EMA(ITUB4.SA.Close, n = 5),
     EMA_20 = TTR::EMA(ITUB4.SA.Close, n = 20),
-    EMA_26 = TTR::EMA(ITUB4.SA.Close, n = 26),
-    EMA_50 = TTR::EMA(ITUB4.SA.Close, n = 50),
+    EMA_60 = TTR::EMA(ITUB4.SA.Close, n = 60),
     
     # --- Weighted Moving Averages (WMA) ---
-    WMA_10 = TTR::WMA(ITUB4.SA.Close, n = 10),
+    WMA_05 = TTR::WMA(ITUB4.SA.Close, n = 5),
     WMA_20 = TTR::WMA(ITUB4.SA.Close, n = 20),
     
     # --- Momentum & Rate of Change (ROC) ---
     MOM_10 = TTR::momentum(ITUB4.SA.Close, n = 10),
-    MOM_14 = TTR::momentum(ITUB4.SA.Close, n = 14),
+    MOM_20 = TTR::momentum(ITUB4.SA.Close, n = 20),
     ROC_12 = TTR::ROC(ITUB4.SA.Close, n = 12, type = "discrete") * 100,
     ROC_14 = TTR::ROC(ITUB4.SA.Close, n = 14, type = "discrete") * 100,
     
     # --- Relative Strength Index (RSI) ---
-    RSI_07 = TTR::RSI(ITUB4.SA.Close, n = 7),
+    RSI_05 = TTR::RSI(ITUB4.SA.Close, n = 5),
+    RSI_10 = TTR::RSI(ITUB4.SA.Close, n = 10),
     RSI_14 = TTR::RSI(ITUB4.SA.Close, n = 14),
-    RSI_21 = TTR::RSI(ITUB4.SA.Close, n = 21),
+    RSI_20 = TTR::RSI(ITUB4.SA.Close, n = 20),
     
     # --- On-Balance Volume (OBV) ---
     OBV       = TTR::OBV(ITUB4.SA.Close, ITUB4.SA.Volume),
     OBV_SMA20 = TTR::SMA(OBV, n = 20),
-    OBV_SMA50 = TTR::SMA(OBV, n = 50)
+    OBV_SMA60 = TTR::SMA(OBV, n = 60)
   )
 
 # --- ADX & Directional Indicators ---
@@ -85,8 +83,9 @@ calc_adx <- function(data, n) {
 
 db <- dplyr::bind_cols(
   db,
+  calc_adx(db, 10),
   calc_adx(db, 14),
-  calc_adx(db, 50)
+  calc_adx(db, 60)
 )
 
 # --- Stochastic Oscillator ---
@@ -99,7 +98,7 @@ db <- cbind(db, stoch_osc[, c("fastK_STO","fastD_STO")])
 colnames(db)[(ncol(db)-1):ncol(db)] <- c("Stoch_K", "Stoch_D")
 
 # --- MACD ---
-macd <- TTR::MACD(as.numeric(db$ITUB4.SA.Close), nFast = 12, nSlow = 26, nSig = 9, maType = TTR::EMA)
+macd <- TTR::MACD(as.numeric(db$ITUB4.SA.Close), maType = TTR::EMA)
 MACD_Hist <- macd[, "macd"] - macd[, "signal"]
 
 db <- cbind(db,
@@ -116,16 +115,16 @@ db$MFI_14 <- as.numeric(ITUB4.SA.MFI_14)
 
 # --- Bollinger Bands ---
 BB_20 <- TTR::BBands(as.numeric(db$ITUB4.SA.Close), n = 20, sd = 2)
-BB_50 <- TTR::BBands(as.numeric(db$ITUB4.SA.Close), n = 50, sd = 2)
+BB_60 <- TTR::BBands(as.numeric(db$ITUB4.SA.Close), n = 60, sd = 2)
 
 db <- cbind(db,
             BB20_Central = BB_20[, "mavg"],
             BB20_Upper   = BB_20[, "up"],
             BB20_Lower   = BB_20[, "dn"],
             
-            BB50_Central = BB_50[, "mavg"],
-            BB50_Upper   = BB_50[, "up"],
-            BB50_Lower   = BB_50[, "dn"])
+            BB50_Central = BB_60[, "mavg"],
+            BB50_Upper   = BB_60[, "up"],
+            BB50_Lower   = BB_60[, "dn"])
 
 rm(list = setdiff(ls(), c("db")))
 
